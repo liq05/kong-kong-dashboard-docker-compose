@@ -58,6 +58,8 @@ services:
     restart: on-failure
     stdin_open: true
     tty: true
+    volumes: 
+      - ./postgresql:/var/lib/postgresql/data
 
   kong-dashboard:
     image: pgbi/kong-dashboard:v3.5.0
