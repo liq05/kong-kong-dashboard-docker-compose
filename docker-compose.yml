@@ -38,12 +38,19 @@ services:
       KONG_PROXY_ERROR_LOG: /dev/stderr
     links:
       - db:db
+      - fluentd
     ports:
       - "8000:8000/tcp"
       - "8001:8001/tcp"
       - "8443:8443/tcp"
       - "8444:8444/tcp"
     restart: on-failure
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: httpd.access
+
   db:
     image: postgres:9.5-alpine
     environment:
@@ -60,6 +67,14 @@ services:
     tty: true
     volumes: 
       - ./postgresql:/var/lib/postgresql/data
+    links:
+      - fluentd
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: httpd.access
+
 
   kong-dashboard:
     image: pgbi/kong-dashboard:v3.5.0
@@ -69,3 +84,25 @@ services:
     depends_on:
       kong:
         condition: service_healthy
+
+  fluentd:
+    build: ./fluentd
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    links:
+      - "elasticsearch"
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+  elasticsearch:
+    image: elasticsearch:5.3.0
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+  kibana:
+    image: kibana:5.3.0
+    links:
+      - "elasticsearch"
+    ports:
+      - "5601:5601"
