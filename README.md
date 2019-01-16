@@ -39,20 +39,16 @@ config.enable_implicit_grant
 
 details:https://tools.ietf.org/html/rfc6749#section-4.2
 
-config.enable_password_grant(the easiest type,personal recommendation--test first)
+config.enable_password_grant(**the easiest type,personal recommendation--test first**)
 
 datails:https://tools.ietf.org/html/rfc6749#section-4.3 
 
-
 ### Kong Plugin ACL Usage Example:
-It spend me four hours. So record the process.
-
+Spend several hours. So record the process.
 Reference:
-
 https://docs.konghq.com/hub/kong-inc/acl/
-
 https://github.com/Kong/kong-oauth2-hello-world
- - step1. create a service named as mockacl.
+ - Step 1. create a service named as "mockacl".
 ```shell
 curl -X POST \
   --url "http://127.0.0.1:8001/services" \
@@ -76,7 +72,7 @@ Response:
           "write_timeout": 60000
       }
 ```
- - step2.create a route for above service named as  mockacl
+ - Step 2. create a route for above service named as  "mockacl"
 ```shell
 curl -X POST \
   --url "http://127.0.0.1:8001/services/mockacl/routes" \
@@ -108,7 +104,7 @@ Response:
   "id": "a3cb5007-f351-481e-ac9d-02fbf3e22d0b"
 }
 ```
-Now,try the new service/api.Work fine:
+Now,try the new service/api. Work fine:
 ```shell
 curl -X GET \
   --url "http://127.0.0.1:8000/mockacl" \
@@ -151,7 +147,108 @@ Response:
   "bodySize": 0
 }
 ```
- - step3.create ACL plugin for above service
-
-
+ - Step 3. create ACL plugin for above service
+```shell
+curl -X POST http://127.0.0.1:8001/services/mockacl/plugins \
+     --data "name=acl"  \
+     --data "config.whitelist=aclgroup" \
+     --data "config.hide_groups_header=true"
+```
+Now,try the new service/api. You will not be allowed to consume this service:
+```shell
+curl -X GET \
+  --url "http://127.0.0.1:8000/mockacl" \
+  --header "Host: mockbin.org"
+```
+The response as follows:
+```json
+{"message":"You cannot consume this service"}
+```
+ACL plugin become effective.
+ - Step 4. create a Kong consumer (called "mockacluser")  and add group to above consumer
+```shell
+curl -X POST \
+  --url "http://127.0.0.1:8001/consumers/" \
+  --data "username=mockacluser"
+```
+Response :
+```json
+{
+  "custom_id": null,
+  "created_at": 1547621622,
+  "username": "mockacluser",
+  "id": "cf88cb4f-fb5b-4158-9915-eb5df988b1fd"
+}
+```
+Add ACL group(called "aclugroup") to above consumer, the group name must be the same as "config.whitelist" of Step 3
+```shell
+curl -X POST \
+  --url "http://127.0.0.1:8001/consumers/mockacluser/acls" \
+  --data "group=aclgroup"
+```
+Response :
+```json
+{
+  "group": "aclgroup",
+  "created_at": 1547624003000,
+  "id": "8913b7ef-54a9-422a-b2be-d04274dd5c9b",
+  "consumer_id": "cf88cb4f-fb5b-4158-9915-eb5df988b1fd"
+}
+```
+ - Step 5. follow the official description. We add basic Authorization (username is "mockacluser", password is "mockaclpw" ) to above consumer.
+```shell
+curl -X POST \
+     --url http://127.0.0.1:8001/consumers/mockacluser/basic-auth \
+     --data "username=mockacluser" \
+     --data "password=mockaclpw"
+```
+Response :
+```json
+{
+  "created_at": 1547624451000,
+  "id": "84516d9a-a0fa-4f57-af1b-aca5319bfb37",
+  "username": "mockacluser",
+  "password": "9b91b3b39365d00cf0a1f283647aebbd5472013f",
+  "consumer_id": "cf88cb4f-fb5b-4158-9915-eb5df988b1fd"
+}
+```
+Follow the official description, we get the Authorization header is "bW9ja2FjbHVzZXI6bW9ja2FjbHB3". Then, we try the service as follows:
+```shell
+curl -X GET \
+     --url "http://127.0.0.1:8000/mockacl" \
+     --header "Host: mockbin.org" \
+     --header "Authorization: Basic bW9ja2FjbHVzZXI6bW9ja2FjbHB3"
+```
+we get the response
+```json
+{"message":"You cannot consume this service"}
+```
+Why?  There are some problems which i spend a lot of time to solve. You must config authentication plugin to the service named as "mockacl" .Otherwise, you will never be allowed to consume this service. So we try to do it.
+```shell
+curl -X POST http://127.0.0.1:8001/services/mockacl/plugins \
+    --data "name=basic-auth"  \
+    --data "config.hide_credentials=true"  
+```
+Response:
+```json
+{
+  "created_at": 1547625339000,
+  "config": {
+    "hide_credentials": true,
+    "anonymous": ""
+  },
+  "id": "f56e2e6e-0ec9-4faf-801d-b402393f54fc",
+  "enabled": true,
+  "service_id": "24ad5ced-e5e8-4945-810f-f744fc7354bc",
+  "name": "basic-auth"
+}
+```
+Now, try the service/api
+```shell
+curl -X GET \
+     --url "http://127.0.0.1:8000/mockacl" \
+     --header "Host: mockbin.org" \
+     --header "Authorization: Basic bW9ja2FjbHVzZXI6bW9ja2FjbHB3"
+```
+We get the correct result the same as the Step 2.The all about ACL plugin control.
 
