@@ -45,9 +45,13 @@ datails:https://tools.ietf.org/html/rfc6749#section-4.3
 
 ### Kong Plugin ACL Usage Example:
 Spend several hours. So record the process.
+
 Reference:
+
 https://docs.konghq.com/hub/kong-inc/acl/
+
 https://github.com/Kong/kong-oauth2-hello-world
+
  - Step 1. create a service named as "mockacl".
 ```shell
 curl -X POST \
