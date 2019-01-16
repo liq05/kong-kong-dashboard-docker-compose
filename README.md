@@ -33,6 +33,10 @@ config.enable_client_credentials  details:https://tools.ietf.org/html/rfc6749#se
 
 config.enable_implicit_grant details:https://tools.ietf.org/html/rfc6749#section-4.2
 
-config.enable_password_grant datails:https://tools.ietf.org/html/rfc6749#section-4.3 (the easiest type,personal recommendation--test first)
+config.enable_password_grant(the easiest type,personal recommendation--test first)
+
+datails:https://tools.ietf.org/html/rfc6749#section-4.3 
+
+
 
 
