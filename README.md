@@ -27,11 +27,17 @@ grant_type details
 https://docs.konghq.com/hub/kong-inc/oauth2/
 
 ##### grant_type as follows(four type):
-config.enable_authorization_code  details:https://tools.ietf.org/html/rfc6749#section-4.1
+config.enable_authorization_code
 
-config.enable_client_credentials  details:https://tools.ietf.org/html/rfc6749#section-4.4
+details:https://tools.ietf.org/html/rfc6749#section-4.1
 
-config.enable_implicit_grant details:https://tools.ietf.org/html/rfc6749#section-4.2
+config.enable_client_credentials
+
+details:https://tools.ietf.org/html/rfc6749#section-4.4
+
+config.enable_implicit_grant
+
+details:https://tools.ietf.org/html/rfc6749#section-4.2
 
 config.enable_password_grant(the easiest type,personal recommendation--test first)
 
